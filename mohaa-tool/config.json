@@ -1,0 +1,9 @@
+{
+  "api_key": "-",
+  "keys": {
+    "groq": "-",
+    "grok": "-"
+  },
+  "provider": "anthropic",
+  "model": "claude-sonnet-4-6"
+}

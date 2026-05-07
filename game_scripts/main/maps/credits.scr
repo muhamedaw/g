@@ -1,0 +1,92 @@
+///////////////////////////////////////////////////////////////////////////////
+//
+//  MoH: Allied Assault Script File  
+//  Level: Ending credits BSP
+//  Script Written By: Benson 'elmagoo' Russell
+//
+///////////////////////////////////////////////////////////////////////////////
+start:
+level waittill prespawn
+drawhud 0
+
+level waittill spawn
+
+
+//*************************************************************************************************
+//*************************************************************************************************
+//*** - These are variables used to set defaults for the credits script
+//*** - These are all commented out, to change one, un-comment it and change it's value
+//*** - A double slash '//' denotes something as a comment, to uncomment, remove the double slash
+//*************************************************************************************************
+//*************************************************************************************************
+
+//*** position variables on where to position the text on the screen
+//level.section_xpos = 150      //*** section x position, where to place labels such as 'CAST'
+//level.header_xpos = 150       //*** entry header x position, where to place labels such as 'Art Director'
+//level.body_xpos = 340         //*** entry body x position, where to place the entry for lables such as 'Tadd Whomever'
+
+//*** set the default colors for section text.  Defaults to white
+//level.credits_section_red = 0
+//level.credits_section_green = 0
+//level.credits_section_blue = 0
+
+//*** set the default colors for sub_section text.  Defaults to white
+//level.credits_sub_section_red = 0
+//level.credits_sub_section_green = 0
+//level.credits_sub_section_blue = 0
+
+//*** set the default colors for entry header text.  Default is grey
+//level.credits_entry_header_red = 0
+//level.credits_entry_header_green = 0
+//level.credits_entry_header_blue = 0
+
+//*** set the default colors for entry body text.  Default is grey
+//level.credits_entry_body_red = .2
+//level.credits_entry_body_green = .2
+//level.credits_entry_body_blue = .2
+
+//*** set the default font for section text.  Default is handle-23
+//level.credits_section_font = "handle-23"
+
+//*** set the default font for sub_section text.  Default is handle-22
+//level.credits_sub_section_font = "handle-22"
+
+//*** set the default font for entry header text.  Default is handle-18
+//level.credits_entry_header_font = "handle-18"
+
+//*** set the default font for entry body text.  Default is handle-18
+//level.credits_entry_body_font = "handle-18"
+
+//*** sets the time it takes for an entry to scroll up the screen in seconds
+//*** this is based on going up 480 units, so this includes the time it takes to clear the borders.
+//*** Default is 15 seconds
+//level.credits_scrolltime = 17
+
+//************************************************************************************
+//************************************************************************************
+
+
+//*** launch the credits setup thread first
+waitthread global/credits.scr::credits_setup
+
+//*** this bsp is for viewing the credits while in the menu, play the berlin music
+$player playsound credits1 wait
+
+//*** this script file contains all the data to display on the screen
+waitthread global/credits_data.scr::credits_start
+
+$player waittill sounddone
+
+//*** loop the sound again
+$player playsound credits1 wait
+$player waittill sounddone
+
+//*** loop the sound again
+$player playsound credits1 wait
+$player waittill sounddone
+
+//*** loop the sound again
+$player playsound credits1 wait
+$player waittill sounddone
+
+end

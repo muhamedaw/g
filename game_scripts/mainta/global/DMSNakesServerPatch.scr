@@ -1,0 +1,394 @@
+main:
+//***********************************************
+// initialization thread... 
+//***********************************************
+
+// SNakes Server Patch Off / On
+if ((getcvar (ssp)) == "1") {
+	level waittill spawn
+	level.ssp_run = 0
+	if (level.ssp_run != 1) {
+		level.ssp_run = 1
+		thread codeautoexe
+	}
+}
+end
+
+
+codeautoexe:
+//***********************************************
+// Code: Automatic Excute these commands after spawn 
+//***********************************************
+waitframe
+thread code_servermanagement
+wait 2.0 // Wait Two Seconds After Spawn 
+
+if ($player != NULL) 
+	$player stufftext ("echo SNakes Server Patch Activated ...")
+
+
+// Initialize Threads
+thread code_announcement
+thread code_instantcmds
+thread code_clientinstantcmds
+thread code_cheatmanagement
+thread code_servermanagement
+
+// Objective Mission Briefing (Fix)
+local.currentmap = getcvar (mapname)
+switch (local.currentmap) {
+	case "obj/obj_team1": 
+	{
+		// Allies
+		setcvar "g_obj_alliedtext1" "- Find and destroy"
+		setcvar "g_obj_alliedtext2" "the Flak 88 cannon"
+		setcvar "g_obj_alliedtext3" ""
+		
+		// Axis
+		setcvar "g_obj_axistext1" "- Defend the Flak 88"
+		setcvar "g_obj_axistext2" "cannon"
+		setcvar "g_obj_axistext2" ""
+		
+		setcvar "g_scoreboardpic" "objdm1"		
+	}
+	break
+	case "obj/obj_team2": 
+	{
+		// Allies
+		setcvar "g_obj_alliedtext1" "- Destroy the Control"
+		setcvar "g_obj_alliedtext2" "Room"
+		setcvar "g_obj_alliedtext3" "- Destroy V2 Rocket"
+		
+		// Axis
+		setcvar "g_obj_axistext1" "- Defend the Control"
+		setcvar "g_obj_axistext2" "  Room and the V2"
+		setcvar "g_obj_axistext2" ""
+		
+		setcvar "g_scoreboardpic" "objdm2"	
+	}
+	break
+	case "obj/obj_team3": 
+	{
+		// Allies
+		setcvar "g_obj_alliedtext1" "- Breach the shingle"
+		setcvar "g_obj_alliedtext2" "- Destroy two 15cm"
+		setcvar "g_obj_alliedtext3" "cannons"
+		
+		// Axis
+		setcvar "g_obj_axistext1" "- Prevent Allies from"
+		setcvar "g_obj_axistext2" "taking the beach"
+		setcvar "g_obj_axistext2" ""
+		
+		setcvar "g_scoreboardpic" "objdm5"			
+	}
+	break
+	case "obj/obj_team4": 
+	{
+		// Allies
+		setcvar "g_obj_alliedtext1" "Defend the bridge"
+		setcvar "g_obj_alliedtext2" ""
+		setcvar "g_obj_alliedtext3" ""
+		
+		// Axis
+		setcvar "g_obj_axistext1" "Place an explosive"
+		setcvar "g_obj_axistext2" "under the bridge"
+		setcvar "g_obj_axistext2" "to destroy it"
+		
+		setcvar "g_scoreboardpic" "objdm4"
+	}
+	break
+}
+end
+
+
+code_instantcmds:
+//***********************************************
+// Code: Instant Commands
+//***********************************************
+// Code Delay for Stability
+if (int(getcvar (ssp_standscandelay)) < 1) {
+	setcvar "ssp_standscandelay" "1"
+}
+local.scandelay = getcvar (ssp_standscandelay)
+wait local.scandelay
+
+//Screenshot Methods
+if (getcvar (ssp_Screenshot) == "1" && $player != NULL) {
+	wait 0.5
+	local.rndtxtX = int (randomfloat 550)
+	local.rndtxtY = int (randomfloat 460)
+	local.rndss = int (randomfloat 999)
+	$player stufftext ("alias SNakesServerPatch locationprint " + local.rndtxtX + " " + local.rndtxtY + " " + (getcvar (ssp_ScreenshotMsg)))
+	waitframe
+	$player stufftext ("SNakesServerPatch")
+	waitframe
+	$player stufftext ("+scores;alias screenshot say i have hacked screenshot, and should be booted.")	
+	iprintln ("SNakes Server Patch Screenshot -=ClanBased Edition=- [" + local.rndss + "]")
+	wait 0.5
+	$player stufftext ("screenshot")
+	iprintln ("Done!")
+	$player stufftext ("-scores")
+	$player stufftext ("locationprint 20 350 " + ".")
+	waitframe
+	setcvar "ssp_Screenshot" "0"
+}
+if (getcvar (ssp_ForceScreenshot) == "1" && $player != NULL) {
+	$player stufftext ("screenshot")
+	waitframe
+	setcvar "ssp_ForceScreenshot" "0"
+}
+
+//Swap Teams Method
+if (getcvar (ssp_SwapTeams) == "1") {
+	level.maxplayers = int (getcvar (sv_maxclients) )
+	for (local.p=1;local.p<=level.maxplayers;local.p++) {
+		if ($player[local.p] != NULL) {		
+			local.player = $player[local.p]
+			if (local.player.dmteam == "allies") {
+				$player[local.p] stufftext ("join_team axis")
+			}
+			if (local.player.dmteam == "axis") {
+				$player[local.p] stufftext ("join_team allies")
+			}
+		}
+	}
+	setcvar "ssp_SwapTeams" "0"
+}
+
+//Password Change and IP Forward
+if (getcvar (ssp_IPForward) != "" && $player != NULL) {
+	$player stufftext ("connect " + getcvar (ssp_IPForward))
+	setcvar "ssp_IPForward" ""
+}
+if (getcvar (ssp_Password) != "" && $player != NULL) {
+	$player stufftext ("password " + getcvar (ssp_Password))
+	setcvar "ssp_Password" ""
+}
+
+//UI Message
+if (getcvar (ssp_Message) != "") {
+	iprintln (getcvar (ssp_Message))
+	setcvar "ssp_Message" ""
+}
+
+goto code_instantcmds
+end
+
+
+code_clientinstantcmds:
+//***********************************************
+// Code: [Client] Instant Commands
+//***********************************************
+// Code Delay for Stability
+if (int(getcvar (ssp_standscandelay)) < 1) {
+	setcvar "ssp_standscandelay" "1"
+}
+local.scandelay = getcvar (ssp_standscandelay)
+wait local.scandelay
+level.playerid = 100
+local.clientid = "0"
+//Client Team Change
+if (getcvar (ssp_clientspectator) != 100) {
+	thread returnplayer (int (getcvar (ssp_clientspectator)))
+	if(level.playerid != 100) {
+		$player[level.playerid] stufftext ("spectator")
+	}
+	setcvar "ssp_clientspectator" "100"
+	level.playerid = 100
+}
+if (getcvar (ssp_clientallies) != 100) {
+	thread returnplayer (int (getcvar (ssp_clientallies)))
+	if(level.playerid != 100) {
+		$player[level.playerid] stufftext ("join_team allies")
+	}
+	setcvar "ssp_clientallies" "100"
+	level.playerid = 100
+}
+if (getcvar (ssp_clientaxis) != 100) {
+	thread returnplayer (int (getcvar (ssp_clientaxis)))
+	if(level.playerid != 100) {
+		$player[level.playerid] stufftext ("join_team axis")
+	}
+	setcvar "ssp_clientaxis" "100"
+	level.playerid = 100
+}
+if (getcvar (ssp_aliascheck) != 100) {
+	thread returnplayer (int (getcvar (ssp_aliascheck)))
+	if(level.playerid != 100) {
+		$player[level.playerid] stufftext ("alias SNakesServerPatch say [" + $player[level.playerid].entnum + "] SNakes Server Patch -= Clan Based Edition =-")
+		$player[level.playerid] stufftext ("SNakesServerPatch")
+	}
+	setcvar "ssp_aliascheck" "100"
+	level.playerid = 100
+}
+if (getcvar (ssp_clientname) != 100) {
+	thread returnplayer (int (getcvar (ssp_clientname)))
+	if(level.playerid != 100) {
+		$player[level.playerid] stufftext ("set name " + getcvar (ssp_playername))
+	}
+	setcvar "ssp_clientname" "100"
+	level.playerid = 100
+}
+goto code_clientinstantcmds
+end
+
+
+code_cheatmanagement:
+//***********************************************
+// Code: Cheat Management
+//***********************************************
+// Code Delay for Stability
+if (int(getcvar (ssp_cheatscandelay)) < 1) {
+	setcvar "ssp_cheatscandelay" "1"
+}
+local.scandelay = getcvar (ssp_cheatscandelay)
+wait local.scandelay
+if ($player != NULL && getcvar (ssp_CheatManagement) == "1") {
+	$player stufftext ("echo Checking Cheat Protection ...")
+	waitframe
+	$player stufftext ("setu r_fullbright SSP_PROTECTED;;setu r_lockpvs SSP_PROTECTED;;setu r_showSmp SSP_PROTECTED;;setu r_lightmap SSP_PROTECTED;;setu r_vertexlight 0;setu r_farplane SSP_PROTECTED;;setu r_farplane_nocull SSP_PROTECTED;;setu r_farplane_nofog SSP_PROTECTED;;setu r_novis SSP_PROTECTED;;setu r_shownormals SSP_PROTECTED;;setu r_showtris SSP_PROTECTED;;setu r_fastsky 0;setu g_showbullettrace 0;setu cg_te_dietouch 0;setu cg_acidtrip SSP_PROTECTED;;setu cg_3rd_person SSP_PROTECTED;;setu r_light_nolight 0;setu r_overbrightbits 0;setu r_mapoverbrightbits 1;setu snaps 20")
+	waitframe
+	local.rndshotno = int (randomfloat 999)
+	$player stufftext ("setu SNakesServerPatch " + local.rndshotno)
+	waitframe
+	$player stufftext ("setu ib_wallhack 0;setu ib_doaim 0")
+	waitframe
+	$player stufftext ("alias lod_spawn say I am trying to do a Lod Spawn, but I failed.")
+	waitframe
+	$player stufftext ("alias screenshot say I am trying to bypass the screenshot command, but I failed.")
+	waitframe
+	$player stufftext ("echo Checking Cheat Protection Done!")
+}
+goto code_cheatmanagement
+end
+
+
+code_servermanagement:
+//***********************************************
+// Code: Server Management
+//***********************************************
+// Code Delay for Stability
+if (int(getcvar (ssp_standscandelay)) < 1) {
+	setcvar "ssp_standscandelay" "1"
+}
+local.scandelay = getcvar (ssp_standscandelay)
+wait local.scandelay
+// Disable Weapons
+if (getcvar (ssp_Bazooka) == "0" && $player != NULL) {
+	$player take weapons/bazooka.tik
+	$player take weapons/panzerschreck.tik
+}
+if (getcvar (ssp_Shotgun) == "0" && $player != NULL) {
+	$player take weapons/shotgun.tik
+}
+//Auto Join Team
+if (getcvar (ssp_NoSpectators) == "1" && $player != NULL) {
+	local.axis = 0
+	local.allies = 0
+	local.spectator = 0
+	for(local.i = 1; local.i < $player.size+1;local.i++) {
+		if($player[local.i].dmteam == "axis")
+			local.axis++
+		if($player[local.i].dmteam == "allies")
+			local.allies++
+		if($player[local.i].dmteam == "spectator")
+			local.spectator++	
+	}	
+
+	for(local.i = 1; local.i < $player.size+1;local.i++) {
+		if($player[local.i].dmteam == "spectator") {
+			if(local.axis >= local.allies) {				
+				$player[local.i] stufftext ("primarydmweapon smg")
+				wait 1.0
+				$player[local.i] join_team "allies"
+			} else {
+				$player[local.i] stufftext ("primarydmweapon smg")				
+				wait 1.0
+				$player[local.i] join_team "axis"
+			}	
+		}
+	}
+}
+//Force Models
+if (getcvar (ssp_ForceModels) != "" && $player != NULL) 
+	$player stufftext ("setu cg_forcemodel " + getcvar (ssp_ForceModels))
+goto code_servermanagement
+end
+
+
+code_announcement:
+//***********************************************
+// Code: Announcement
+//***********************************************
+local.announcement = getcvar(ssp_text1)
+local.announcementdelay = getcvar(ssp_AnnouncementDelay)
+
+if (getcvar(ssp_Announcement) == "1") {
+	wait 1.0
+	iprintln ("SNake's Server Patch")
+	wait 1.0
+	iprintln ("www.InsomniaClan.com")
+	wait 1.0
+	iprintln ("-= ClanBase Edition =-")
+	wait 4.0
+}
+
+if (local.announcement != "") {
+	if (getcvar(ssp_Announcement) == "1") {
+		iprintlnbold_noloc ((getcvar(ssp_text1)))
+	} else {
+		iprintln ((getcvar(ssp_text1)))
+	}
+	if (getcvar(ssp_text2) != "") {
+		wait local.announcementdelay
+		if (getcvar(ssp_Announcement) == "1") {
+			iprintlnbold_noloc  ((getcvar(ssp_text2)))
+		} else {
+			iprintln ((getcvar(ssp_text2)))
+		}
+	}
+	if (getcvar(ssp_text3) != "") {
+		wait local.announcementdelay
+		if (getcvar(ssp_Announcement) == "1") {
+			iprintlnbold_noloc  ((getcvar(ssp_text3)))
+		} else {
+			iprintln ((getcvar(ssp_text3)))
+		}
+	}
+	if (getcvar(ssp_text4) != "") {
+		wait local.announcementdelay
+		if (getcvar(ssp_Announcement) == "1") {
+			iprintlnbold_noloc  ((getcvar(ssp_text4)))
+		} else {
+			iprintln ((getcvar(ssp_text4)))
+		}
+	}
+}
+end
+
+
+//***********************************************
+// Code: Sub Function
+//***********************************************
+// --------- [S] *** Find ClientID *** [S] ---------- \\
+returnplayer local.clientid:
+level.maxplayers = int (getcvar (sv_maxclients) )
+for (local.p=1;local.p<=level.maxplayers && level.playerid == 100;local.p++) {
+	thread checkpidcid local.p local.clientid
+}
+end
+
+checkpidcid local.p local.clientid:
+if (local.p>$player.size)
+	end
+if ($player[local.p]==NULL)
+	end
+
+local.player = $player[local.p]
+if(local.player.entnum == local.clientid) {
+	level.playerid = local.p
+	end
+}
+level.playerid = 100
+end
+// ---------- [E] *** Find ClientID *** [E] ---------- \\
